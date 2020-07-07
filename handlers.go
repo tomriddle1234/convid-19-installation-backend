@@ -13,42 +13,51 @@ func infoHandler(c *gin.Context){
 }
 
 func accumulateSignalHandler(c *gin.Context){
-	receivedCount++
-	currentTime := time.Now()
-	difference := uint8(math.Round(currentTime.Sub(lastReactTime).Seconds()))
 
-	// if exceed response time limit, then resets all
-	if difference > responseTime{
-		accumulatedCount = 1
-		lastReactTime = currentTime
+	// watch out, if it's charging, then return directly not changing anything.
 
-		chargeStatus.m.Lock()
-		if chargeStatus.val != false{
-			chargeChannel <- false
-			chargeStatus.val = false
-		}
-		chargeStatus.m.Unlock()
-
+	if chargeStatus.val == true{
+		c.JSON(http.StatusOK, gin.H{
+			"status":"Accumulated Signal Received, Charging, so Not changing anything.",
+			"accumulatedCount": accumulatedCount,
+			"chargeOrNot": chargeStatus.val,
+		})
 	} else {
-		accumulatedCount += 1
-		// if exceed accumulate count within response time, switch status
-		if accumulatedCount >= signalReactLowerLimit {
+		receivedCount++
+		currentTime := time.Now()
+		difference := uint8(math.Round(currentTime.Sub(lastReactTime).Seconds()))
+
+		// if exceed response time limit, then resets all
+		if difference > responseTime{
+			accumulatedCount = 1
 			lastReactTime = currentTime
+
 			chargeStatus.m.Lock()
-			if chargeStatus.val != true {
-				chargeChannel <- true
-				chargeStatus.val = true
+			if chargeStatus.val != false{
+				chargeChannel <- false
+				chargeStatus.val = false
 			}
 			chargeStatus.m.Unlock()
+
+		} else {
+			accumulatedCount += 1
+			// if exceed accumulate count within response time, switch status
+			if accumulatedCount >= signalReactLowerLimit {
+				lastReactTime = currentTime
+				chargeStatus.m.Lock()
+				if chargeStatus.val != true {
+					chargeChannel <- true
+					chargeStatus.val = true
+				}
+				chargeStatus.m.Unlock()
+			}
 		}
+		c.JSON(http.StatusOK, gin.H{
+			"status":"Accumulated Signal Received.",
+			"accumulatedCount": accumulatedCount,
+			"chargeOrNot": chargeStatus.val,
+		})
 	}
-	chargeStatus.m.Lock()
-	c.JSON(http.StatusOK, gin.H{
-		"status":"Accumulated Signal Received.",
-		"accumulatedCount": accumulatedCount,
-		"chargeOrNot": chargeStatus.val,
-	})
-	chargeStatus.m.Unlock()
 }
 
 func resetBallonHandler(c *gin.Context){
@@ -73,20 +82,20 @@ func reliefSignalHandler(c *gin.Context){
 }
 
 func statusCheckHandler(c *gin.Context){
-	chargeStatus.m.Lock()
-	reliefStatus.m.Lock()
+	//chargeStatus.m.Lock()
+	//reliefStatus.m.Lock()
 	c.JSON(http.StatusOK, gin.H{"charge":chargeStatus.val, "relief":reliefStatus.val})
-	chargeStatus.m.Unlock()
-	reliefStatus.m.Unlock()
+	//chargeStatus.m.Unlock()
+	//reliefStatus.m.Unlock()
 }
 
 func listenToChannel(){
-	chargeStatus.m.Lock()
-	reliefStatus.m.Lock()
+	//chargeStatus.m.Lock()
+	//reliefStatus.m.Lock()
 	chargeMsg := chargeStatus.val
 	reliefMsg := reliefStatus.val
-	chargeStatus.m.Unlock()
-	reliefStatus.m.Unlock()
+	//chargeStatus.m.Unlock()
+	//reliefStatus.m.Unlock()
 
 	for {
 		// deal with charge

@@ -81,9 +81,9 @@ func TestFuncAccumulateThenMultipleGetHandler(t *testing.T){
 		time.Sleep(800 * time.Millisecond)
 	}
 
-	// check status 10 times immediately
+	// check status 100 times immediately
 	req, _ = http.NewRequest("GET", ts.URL + "/api/statuscheck", nil)
-	for i:=0;i<10; i++{
+	for i:=0;i<100; i++{
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Fatal(err)
@@ -93,10 +93,10 @@ func TestFuncAccumulateThenMultipleGetHandler(t *testing.T){
 		body,_:= ioutil.ReadAll(resp.Body)
 		log.Println(string(body))
 		resp.Body.Close()
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 
 		// send another post signal among get requests
-		if i == 5 {
+		if i == 15 {
 			nreq, _ := http.NewRequest("POST", ts.URL + "/api/accumulatesignal", nil)
 			nresp, err := client.Do(nreq)
 			if err != nil {
