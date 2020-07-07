@@ -7,6 +7,7 @@ import (
 	"golang.org/x/time/rate"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -19,11 +20,11 @@ func main() {
 	gin.DefaultWriter = io.MultiWriter(f)
 	log.SetOutput(gin.DefaultWriter)
 
-	GetSimpleProdEngine().Run(":8082") // listen and serve on 0.0.0.0:8082 (for windows "localhost:8080")
+	GetSimpleProdEngine().ListenAndServe()
 }
 
 
-func GetSimpleProdEngine() *gin.Engine {
+func GetSimpleProdEngine() *http.Server {
 	router = gin.Default()
 
 	config := cors.DefaultConfig()
@@ -50,7 +51,15 @@ func GetSimpleProdEngine() *gin.Engine {
 	initData()
 	go listenToChannel()
 
-	return router
+	// listen and serve on 0.0.0.0:8082 (for windows "localhost:8080")
+	s := &http.Server{
+		Addr: ":8082",
+		Handler: router,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+	}
+
+	return s
 }
 
 // now this is just for tests
