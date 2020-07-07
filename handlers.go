@@ -98,6 +98,7 @@ func listenToChannel(){
 		// deal with charge
 		newChargeMsg := <- chargeChannel
 		fmt.Println("listenToChannel() observer triggered")
+		log.Println("listenToChannel() observer triggered")
 		// only the first charge switch to true trigger it's turning to false with a timer
 		if newChargeMsg != chargeMsg && newChargeMsg {
 			chargeMsg = newChargeMsg
@@ -110,6 +111,7 @@ func listenToChannel(){
 				log.Println("Now charge status recover to false.")
 				chargeStatus.m.Lock()
 				chargeStatus.val = false
+				chargeChannel <- false
 				chargeStatus.m.Unlock()
 
 				chargeMsg = false
@@ -127,6 +129,7 @@ func listenToChannel(){
 				fmt.Println("Now relief status recover to false.")
 				reliefStatus.m.Lock()
 				reliefStatus.val = false
+				reliefChannel <- true
 				reliefStatus.m.Unlock()
 
 				reliefMsg = false
