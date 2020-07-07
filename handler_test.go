@@ -32,8 +32,7 @@ func TestFuncAccumulateHandler(t *testing.T){
 		time.Sleep(800 * time.Millisecond)
 	}
 
-	// check status after 10 seconds
-	time.Sleep(10 * time.Second)
+	// check status imediately
 	req, _ = http.NewRequest("GET", ts.URL + "/api/statuscheck", nil)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -42,6 +41,19 @@ func TestFuncAccumulateHandler(t *testing.T){
 	}
 	//check response content
 	body,_:= ioutil.ReadAll(resp.Body)
+	log.Println(string(body))
+	defer resp.Body.Close()
+
+	// check status after 10 seconds
+	time.Sleep(10 * time.Second)
+	req, _ = http.NewRequest("GET", ts.URL + "/api/statuscheck", nil)
+	resp, err = client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+		t.Fail()
+	}
+	//check response content
+	body,_ = ioutil.ReadAll(resp.Body)
 	log.Println(string(body))
 	defer resp.Body.Close()
 }

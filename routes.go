@@ -5,6 +5,7 @@ func initializeRoutes() {
 
 	apiRoutes := router.Group("/api")
 	{
+		// POST to http://covidinstal.vfxware.com/api/accumulatesignal
 		apiRoutes.POST("/accumulatesignal", accumulateSignalHandler)
 		apiRoutes.POST("/reliefsignal", reliefSignalHandler)
 		apiRoutes.POST("/resetballon", resetBallonHandler)
