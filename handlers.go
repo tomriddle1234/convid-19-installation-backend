@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"math"
 	"net/http"
 	"time"
@@ -82,11 +83,7 @@ func reliefSignalHandler(c *gin.Context){
 }
 
 func statusCheckHandler(c *gin.Context){
-	//chargeStatus.m.Lock()
-	//reliefStatus.m.Lock()
 	c.JSON(http.StatusOK, gin.H{"charge":chargeStatus.val, "relief":reliefStatus.val})
-	//chargeStatus.m.Unlock()
-	//reliefStatus.m.Unlock()
 }
 
 func listenToChannel(){
@@ -106,9 +103,11 @@ func listenToChannel(){
 			chargeMsg = newChargeMsg
 			chargeTimer := time.NewTimer(time.Duration(statusOnTime) * time.Second)
 			fmt.Println("Start a charge recover timer.")
+			log.Println("Start a charge recover timer.")
 			go func() {
 				<-chargeTimer.C
 				fmt.Println("Now charge status recover to false.")
+				log.Println("Now charge status recover to false.")
 				chargeStatus.m.Lock()
 				chargeStatus.val = false
 				chargeStatus.m.Unlock()
