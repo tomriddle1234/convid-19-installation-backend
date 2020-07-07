@@ -34,10 +34,7 @@ func accumulateSignalHandler(c *gin.Context){
 			lastReactTime = currentTime
 
 			chargeStatus.m.Lock()
-			if chargeStatus.val != false{
-				chargeChannel <- false
-				chargeStatus.val = false
-			}
+			chargeStatus.val = false
 			chargeStatus.m.Unlock()
 
 		} else {
@@ -46,11 +43,21 @@ func accumulateSignalHandler(c *gin.Context){
 			if accumulatedCount >= signalReactLowerLimit {
 				lastReactTime = currentTime
 				chargeStatus.m.Lock()
-				if chargeStatus.val != true {
-					chargeChannel <- true
-					chargeStatus.val = true
-				}
+				chargeStatus.val = true
 				chargeStatus.m.Unlock()
+
+				// set a timer directly here
+				chargeTimer := time.NewTimer(time.Duration(statusOnTime) * time.Second)
+				fmt.Println("Start a charge recover timer.")
+				log.Println("Start a charge recover timer.")
+				go func() {
+					<-chargeTimer.C
+					fmt.Println("Now charge status recover to false.")
+					log.Println("Now charge status recover to false.")
+					chargeStatus.m.Lock()
+					chargeStatus.val = false
+					chargeStatus.m.Unlock()
+				}()
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{

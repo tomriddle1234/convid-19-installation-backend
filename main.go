@@ -49,7 +49,7 @@ func GetSimpleProdEngine() *http.Server {
 
 	initializeRoutes()
 	initData()
-	go listenToChannel()
+	//go listenToChannel()
 
 	// listen and serve on 0.0.0.0:8082 (for windows "localhost:8080")
 	s := &http.Server{
